@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- The title shown in the browser tab -->
+    <title>Data Structures Chat</title>
+    <style>
+        /* --- CSS: This section styles the page and makes it look good --- */
+        
+        /* Basic page setup: full height, no margins, nice background color */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; background-color: #f4f4f8; }
+        h1 { text-align: center; color: #333; }
+        
+        /* The area where chat messages appear, it scrolls when it gets full */
+        #chat-container { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+        
+        /* How individual message bubbles look */
+        .message { padding: 10px 15px; border-radius: 20px; max-width: 75%; line-height: 1.4; }
+        .user { background-color: #007bff; color: white; align-self: flex-end; } /* Blue bubbles for user on the right */
+        .bot { background-color: #e9e9eb; color: #333; align-self: flex-start; }  /* Gray bubbles for bot on the left */
+        
+        /* The typing area and form at the bottom */
+        #message-form { display: flex; padding: 20px; border-top: 1px solid #ddd; background-color: #fff; }
+        #message-input { flex-grow: 1; padding: 12px; border: 1px solid #ccc; border-radius: 20px; font-size: 16px; }
+        button { padding: 12px 20px; margin-left: 10px; border: none; background-color: #007bff; color: white; border-radius: 20px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+
+        /* Styles for Markdown code blocks (like when the bot writes code) */
+        .message pre { background: #2d2d2d; color: #ccc; padding: 10px; border-radius: 8px; overflow-x: auto; }
+        .message code { font-family: Consolas, Monaco, monospace; background: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; }
+        .message pre code { background: transparent; padding: 0; }
+    </style>
+    <!-- Load the 'marked' library to turn text with **bold** or code blocks into real HTML -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <h1>Data Structures Chat</h1>
+    
+    <!-- This is the box that holds all the conversation bubbles -->
+    <div id="chat-container">
+        <div class="message bot">Welcome! Ask me anything about Data Structures.</div>
+    </div>
+    
+    <!-- This is the input bar where the user types and hits send -->
+    <form id="message-form">
+        <input type="text" id="message-input" placeholder="Type your question..." autocomplete="off" required>
+        <button type="submit">Send</button>
+    </form>
+
+    <script>
+        // --- JavaScript: This section makes the page interactive ---
+        
+        // 1. Find the form, input box, and chat window in the document so we can use them
+        const form = document.getElementById('message-form');
+        const input = document.getElementById('message-input');
+        const chatContainer = document.getElementById('chat-container');
+        
+        // 2. Open a WebSocket connection to the server (allows real-time two-way chatting)
+        const ws = new WebSocket(`ws://${window.location.host}`);
+
+        // 3. Set up what to do when the connection opens, closes, or has an error
+        ws.onopen = () => console.log('Connected to WebSocket server');
+        ws.onclose = () => appendMessage('Connection closed.', 'bot');
+        ws.onerror = (error) => console.error('WebSocket Error:', error);
+
+        // 4. What to do when a message arrives from the server (the bot replies)
+        ws.onmessage = (event) => {
+            appendMessage(event.data, 'bot');
+        };
+
+        // 5. Listen for when the user submits the form (presses enter or clicks Send)
+        form.addEventListener('submit', (e) => {
+            e.preventDefault(); // Stop the page from reloading
+            const message = input.value.trim(); // Get the typed text and remove extra spaces
+            if (message) {
+                appendMessage(message, 'user'); // Show the message on screen
+                ws.send(message);               // Send it to the server
+                input.value = '';               // Clear the input box
+            }
+        });
+
+        // 6. A helper function to create a new message bubble and put it on screen
+        function appendMessage(text, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender);
+            
+            // If it's the bot, use 'marked' to style code and bold text correctly
+            if (sender === 'bot') {
+                messageElement.innerHTML = marked.parse(text); // Parse markdown to HTML
+            } else {
+                // For the user, just show plain text
+                messageElement.textContent = text;
+            }
+            
+            // Add the new message to the chat container
+            chatContainer.appendChild(messageElement);
+            // Scroll down automatically so the newest message is visible
+            chatContainer.scrollTop = chatContainer.scrollHeight; 
+        }
+    </script>
+</body>
+</html>
