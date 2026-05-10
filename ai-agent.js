@@ -1,9 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import readlineSync from "readline-sync";
 
-const ai = new GoogleGenAI({
-  apiKey: "AIzaSyDVImR0aYC6di0sj4G_rPMoL84W2X321OI", // ⚠️ don't hardcode real key in production
-});
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const History = [];
 
@@ -12,7 +10,7 @@ const History = [];
 const stockPrice = async ({ stockName }) => {
   try {
     const response = await fetch(
-      `https://query1.finance.yahoo.com/v8/finance/chart/${stockName}`
+      `https://query1.finance.yahoo.com/v8/finance/chart/${stockName}`,
     );
 
     if (!response.ok) {
@@ -29,7 +27,7 @@ const stockPrice = async ({ stockName }) => {
 const cryptoPrice = async ({ cryptoName }) => {
   try {
     const response = await fetch(
-      `https://query1.finance.yahoo.com/v8/finance/chart/${cryptoName}`
+      `https://query1.finance.yahoo.com/v8/finance/chart/${cryptoName}`,
     );
 
     if (!response.ok) {
@@ -138,7 +136,7 @@ RULES:
         role: "user",
         parts: [{ functionResponse: functionResponsePart }],
       });
-    } 
+    }
     // ✅ FINAL RESPONSE
     else {
       History.push({

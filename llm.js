@@ -4,7 +4,7 @@ import fs from 'fs';
 import { WebSocketServer } from 'ws';
 
 // 1. Initialize with your API Key (Ideally use process.env.GEMINI_API_KEY)
-const ai = new GoogleGenAI({ apiKey: 'AIzaSyB5HKgH5HPqxBnrwGXO_uN5zq3xtIY1K8M' });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // --- HTTP Server Setup ---
 const server = http.createServer((req, res) => {
